@@ -1,0 +1,8 @@
+.page {
+  height: 100dvh;
+}
+
+.brand {
+  font-size: var(--pf-t--global--font--size--body--lg);
+  font-weight: var(--pf-t--global--font--weight--body--bold);
+}
