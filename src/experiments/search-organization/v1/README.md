@@ -16,7 +16,7 @@ Current stage: **interactive controls (step 3)**. Both contexts use the same con
 
 Consumers provide the controlled `query`, `value`, change callbacks, search label/placeholder, organization label, and typed options. Only menu open/closed state is internal. The component does not own filtering or grouping logic. Its implementation remains local to this experiment version until another experiment needs it.
 
-`SearchOrganizationBar.module.css` contains the explicit style customization: zero InputGroup gap, one overlapping border, outside corners, compact padding, a 12px prefix and a 14px Medium (500) value. Both controls are 37px high with the current PF6 typography. Each remains a separate focusable control; their focus outlines are preserved. The input fills the available width and the toggle fits its visible value.
+`SearchOrganizationBar.module.css` contains the explicit style customization: zero InputGroup gap, a resting border using PF6 border color 100 (#C7C7C7 in the current light theme), one overlapping border, outside corners, compact padding, a 12px prefix and a 14px Medium (500) value. Both controls are 37px high with the current PF6 typography. Each remains a separate focusable control; their focus outlines are preserved. The input fills the available width and the toggle fits its visible value.
 
 The Select popup is portalled to the document body through PF6 Popper so it can overlap the card/map without clipping. It follows the toggle width, uses compact PF6 menu spacing, and remains aligned when the page scrolls. No dependency or library source changes are needed.
 

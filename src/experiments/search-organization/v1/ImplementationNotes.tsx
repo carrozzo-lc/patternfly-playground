@@ -88,6 +88,7 @@ export default function ImplementationNotes() {
           <h3>Configuration through PF6 CSS variables</h3>
           <ul>
             <li><code>--pf-v6-c-input-group--Gap: 0</code> removes the standard separation.</li>
+            <li>The resting FormControl and MenuToggle border colors use <code>--pf-t--global--border--color--100</code> (#C7C7C7 in the current light theme), matching the reference. PF6 hover, expanded, and focus indicators keep their own state styles.</li>
             <li>FormControl and MenuToggle border-radius variables round the outer corners and make the adjoining corners square.</li>
             <li>Control padding variables produce the compact sizing: 8px vertically, 16px horizontally for search, and 10px horizontally for the toggle. With the current 14px typography and line height, both controls measure 37px high.</li>
             <li><code>--pf-v6-c-menu-toggle--Gap: 3px</code> sets the caret spacing. Menu variables set 8px outer vertical padding, 4px vertical item padding, and the small corner radius.</li>
