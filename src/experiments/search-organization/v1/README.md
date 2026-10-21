@@ -1,10 +1,24 @@
 # Search and organization — Option 1
 
-Current stage: **demo content (step 2)**. Fictional routes populate the Routes panel; the Movement Mission card retains the neutral placeholders from step 1. Search, grouping changes, and sorting remain labelled placeholders until step 3.
+Open **Implementation notes** below the experiment description for the PF6 component mapping, state ownership, local CSS adjustments, interaction behavior, and source links. The content is specific to this version and loads when the dialog is opened.
 
-- Routes: network → nation → route tree, checkbox selection (including partial parent selection), Select All / Deselect All, and Expand all / Collapse all. The summary counts routes, not grouping nodes.
-- Movement Mission: the step 1 layout, with Mission summary, Search + sorting, and Mission legs placeholders, keeps the focus on the control location.
-- Fictional route fixtures are kept in `demoData.ts`, separately from the UI.
+Current stage: **interactive controls (step 3)**. Both contexts use the same controlled `SearchOrganizationBar` composition of PF6 components.
+
+- Routes: search matches route name, network, nation, or type (case-insensitive, surrounding whitespace ignored). Matching routes keep their network → Nation/Type hierarchy. Type values are TCR, RCR, and Neither. Search expands matching paths and announces the result count or an empty result message.
+- Group by: Nation / Type changes the grouping while preserving the query and selected route IDs. The summary counts selected routes across the whole fixture set, including hidden results. Select All / Deselect All retain their global scope; individual visible groups affect their displayed descendants.
+- Movement Mission: the Search field and four sort options (Departure ↑ / ↓, Arrival ↑ / ↓) keep their own state. Mission summary and Mission legs remain neutral placeholders. This context demonstrates the controls and their selected state; it does not filter or reorder mission data.
+- Menus close after selection, Escape, Tab, or an outside click. Selection and Escape return focus to the toggle. Enter / Space open the menu; Arrow Down can also open it. PF6 handles option navigation and the selected checkmark. Sort arrows have explicit ascending/descending accessible labels.
+- Fictional route fixtures live in `demoData.ts`; menu choices live in `organizationOptions.ts`. No product screenshots or assets are included.
+
+## Component and styling
+
+`components/SearchOrganizationBar.tsx` composes PF6 [InputGroup](https://www.patternfly.org/components/input-group/), TextInput (`type="search"`), [Select](https://www.patternfly.org/components/menus/select/), MenuToggle, SelectList, and SelectOption. It uses TextInput to match the text-field reference without adding a search icon.
+
+Consumers provide the controlled `query`, `value`, change callbacks, search label/placeholder, organization label, and typed options. Only menu open/closed state is internal. The component does not own filtering or grouping logic. Its implementation remains local to this experiment version until another experiment needs it.
+
+`SearchOrganizationBar.module.css` contains the explicit style customization: zero InputGroup gap, one overlapping border, outside corners, compact padding, a 12px prefix and a 14px Medium (500) value. Both controls are 37px high with the current PF6 typography. Each remains a separate focusable control; their focus outlines are preserved. The input fills the available width and the toggle fits its visible value.
+
+The Select popup is portalled to the document body through PF6 Popper so it can overlap the card/map without clipping. It follows the toggle width, uses compact PF6 menu spacing, and remains aligned when the page scrolls. No dependency or library source changes are needed.
 
 The preview shows two independent contexts: grouping routes in the Routes panel, and sorting legs in a Movement Mission detail card. Selecting a route does not open the mission card.
 

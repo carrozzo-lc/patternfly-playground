@@ -1,0 +1,66 @@
+/* Joined borders are an experiment-specific adjustment to PF6's default gap. */
+.bar {
+  --pf-v6-c-input-group--Gap: 0;
+
+  min-inline-size: 0;
+  flex: 0 0 auto;
+}
+
+.searchItem {
+  min-inline-size: 0;
+}
+
+.selectItem {
+  flex: 0 0 auto;
+  margin-inline-start: calc(-1 * var(--pf-t--global--border--width--control--default));
+}
+
+/* Raise the active control over the shared border without clipping its focus ring. */
+.searchItem:focus-within,
+.selectItem:focus-within {
+  z-index: 1;
+}
+
+.search {
+  --pf-v6-c-form-control--BorderRadius: var(--pf-t--global--border--radius--small) 0 0 var(--pf-t--global--border--radius--small);
+  --pf-v6-c-form-control--PaddingBlockStart: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-form-control--PaddingBlockEnd: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-form-control--PaddingInlineStart: var(--pf-t--global--spacer--md);
+  --pf-v6-c-form-control--PaddingInlineEnd: var(--pf-t--global--spacer--md);
+}
+
+.search input {
+  min-inline-size: 0;
+  inline-size: 100%;
+  text-overflow: ellipsis;
+}
+
+.toggle {
+  --pf-v6-c-menu-toggle--BorderRadius: 0 var(--pf-t--global--border--radius--small) var(--pf-t--global--border--radius--small) 0;
+  --pf-v6-c-menu-toggle--PaddingBlockStart: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-menu-toggle--PaddingBlockEnd: var(--pf-t--global--spacer--sm);
+  /* 10px padding and 3px caret gap match the compact reference toggle. */
+  --pf-v6-c-menu-toggle--PaddingInlineStart: 10px;
+  --pf-v6-c-menu-toggle--PaddingInlineEnd: 10px;
+  --pf-v6-c-menu-toggle--Gap: 3px;
+
+  white-space: nowrap;
+}
+
+.prefix {
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+.value {
+  /* The reference uses Red Hat Text Medium (500), between PF6 regular and bold. */
+  font-weight: 500;
+}
+
+.menu {
+  --pf-v6-c-menu--PaddingBlockStart: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-menu--PaddingBlockEnd: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-menu--BorderRadius: var(--pf-t--global--border--radius--small);
+  --pf-v6-c-menu__item--PaddingBlockStart: var(--pf-t--global--spacer--xs);
+  --pf-v6-c-menu__item--PaddingBlockEnd: var(--pf-t--global--spacer--xs);
+}

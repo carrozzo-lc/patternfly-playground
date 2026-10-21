@@ -3,6 +3,7 @@ import type { ComponentType } from 'react'
 export interface ExperimentVersion {
   id: string
   load: () => Promise<{ default: ComponentType }>
+  loadNotes?: () => Promise<{ default: ComponentType }>
 }
 
 export interface ExperimentDefinition {
@@ -17,11 +18,12 @@ export const experiments: readonly ExperimentDefinition[] = [
   {
     slug: 'search-organization',
     title: 'Search and organization',
-    description: 'Option 1 · Routes demo content and a Movement Mission layout preview. Search and organization controls follow in step 3.',
+    description: 'Option 1 · Joined search and organization controls: group Routes by Nation or Type, and select a sort order in the Movement Mission layout preview.',
     versions: [
       {
         id: 'v1',
         load: () => import('../experiments/search-organization/v1/Experiment'),
+        loadNotes: () => import('../experiments/search-organization/v1/ImplementationNotes'),
       },
     ],
   },

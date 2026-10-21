@@ -3,6 +3,9 @@ import { Button, Card, CardBody, Panel, PanelHeader, PanelMain, Title, TreeView 
 import type { TreeViewDataItem } from '@patternfly/react-core'
 import { AngleDoubleDownIcon, AngleDoubleUpIcon } from '@patternfly/react-icons'
 import { demoRoutes } from '../demoData'
+import { groupingOptions } from '../organizationOptions'
+import type { GroupBy } from '../organizationOptions'
+import { SearchOrganizationBar } from './SearchOrganizationBar'
 import styles from '../Workspace.module.css'
 
 function leafIds(item: TreeViewDataItem): string[] {
@@ -22,17 +25,24 @@ function withCheckedState(item: TreeViewDataItem, selected: ReadonlySet<string>)
 export function RoutesPanel() {
   const [selected, setSelected] = useState(() => new Set(demoRoutes.slice(0, 3).map((route) => route.id)))
   const [allExpanded, setAllExpanded] = useState<boolean | undefined>(undefined)
-  const networks = [...new Set(demoRoutes.map((route) => route.network))]
+  const [query, setQuery] = useState('')
+  const [groupBy, setGroupBy] = useState<GroupBy>('nation')
+  const searchTerm = query.trim().toLocaleLowerCase('en')
+  const matchingRoutes = demoRoutes.filter((route) =>
+    [route.name, route.network, route.nation, route.type].some((text) => text.toLocaleLowerCase('en').includes(searchTerm)),
+  )
+  const networks = [...new Set(matchingRoutes.map((route) => route.network))]
   const data = networks.map((network, index) => {
-    const routes = demoRoutes.filter((route) => route.network === network)
+    const routes = matchingRoutes.filter((route) => route.network === network)
     return withCheckedState({
       id: `network-${index}`,
       name: `Network ${network}`,
-      defaultExpanded: index === 0,
-      children: [...new Set(routes.map((route) => route.nation))].map((nation) => ({
-        id: `network-${index}-${nation}`,
-        name: `Nation ${nation}`,
-        children: routes.filter((route) => route.nation === nation).map((route) => ({ id: route.id, name: route.name })),
+      defaultExpanded: !!searchTerm || index === 0,
+      children: [...new Set(routes.map((route) => route[groupBy]))].map((group) => ({
+        id: `network-${index}-${groupBy}-${group}`,
+        name: groupBy === 'nation' ? `Nation ${group}` : group,
+        defaultExpanded: !!searchTerm,
+        children: routes.filter((route) => route[groupBy] === group).map((route) => ({ id: route.id, name: route.name })),
       })),
     }, selected)
   })
@@ -46,17 +56,35 @@ export function RoutesPanel() {
         <Card isCompact className={styles.routesCard}>
           <CardBody>
             <div className={styles.selectionSummary}>
-              <span role="status">{selected.size} / {demoRoutes.length} SELECTED</span>
+              <span role="status" aria-label="Route selection">{selected.size} / {demoRoutes.length} SELECTED</span>
               <div className={styles.selectionActions}>
                 <Button variant="link" isInline onClick={() => setSelected(new Set(demoRoutes.map((route) => route.id)))}>Select All</Button>
                 <Button variant="link" isInline onClick={() => setSelected(new Set())}>Deselect All</Button>
               </div>
             </div>
-            <div className={styles.controlSlot}>Search + grouping</div>
+            <SearchOrganizationBar
+              searchLabel="Search routes"
+              placeholder="Search routes..."
+              query={query}
+              onQueryChange={(nextQuery) => {
+                setQuery(nextQuery)
+                setAllExpanded(undefined)
+              }}
+              label="Group by"
+              value={groupBy}
+              options={groupingOptions}
+              onValueChange={setGroupBy}
+            />
+            {searchTerm && (
+              <p role="status" aria-label="Route search results" className={styles.searchFeedback}>
+                {matchingRoutes.length === 0 ? 'No routes found.' : `${matchingRoutes.length} of ${demoRoutes.length} routes`}
+              </p>
+            )}
             <div className={styles.routeGroups}>
               <Button
                 variant="link"
                 isInline
+                isDisabled={matchingRoutes.length === 0}
                 className={styles.expandAction}
                 icon={allExpanded ? <AngleDoubleUpIcon /> : <AngleDoubleDownIcon />}
                 onClick={() => setAllExpanded(!allExpanded)}
@@ -64,7 +92,8 @@ export function RoutesPanel() {
                 {allExpanded ? 'Collapse all' : 'Expand all'}
               </Button>
               <TreeView
-                aria-label="Routes by network and nation"
+                key={`${groupBy}:${searchTerm}`}
+                aria-label={`Routes by network and ${groupBy}`}
                 data={data}
                 hasCheckboxes
                 allExpanded={allExpanded}

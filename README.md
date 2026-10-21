@@ -63,6 +63,7 @@ src/
   app/
     AppLayout.tsx              # Shared PF6 masthead, navigation, and page layout
     ExperimentPage.tsx         # Demo title, version, loading and error handling
+    ExperimentNotes.tsx        # Optional implementation notes dialog
     experiments.ts             # Experiment registry and URL helper
     routes.tsx                 # Routes generated from the registry
     pages/                     # Catalog, About, and not-found pages
@@ -137,6 +138,8 @@ export const experiments: readonly ExperimentDefinition[] = [
 ```
 
 Use unique lowercase slugs and version IDs without spaces or slashes. The registry supplies both the home catalog and routes; **no separate route edit is needed**. The component is loaded when its page is opened.
+
+To add reviewer documentation, create a default-exported `ImplementationNotes.tsx` next to the experiment and add `loadNotes: () => import('../experiments/example-pattern/v1/ImplementationNotes')` to that version entry. The shared page adds an **Implementation notes** button below its description. The PF6 dialog loads the notes on opening; versions without `loadNotes` have no button. Keep the notes specific to the version and distinguish PF6 configuration, local CSS, application logic, and demo limitations.
 
 ### 3. Open and check it
 
