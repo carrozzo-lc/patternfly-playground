@@ -17,7 +17,7 @@ export const experiments: readonly ExperimentDefinition[] = [
   {
     slug: 'search-organization',
     title: 'Search and organization',
-    description: 'Option 1 · Layout preview with a map, routes panel, and movement mission detail card.',
+    description: 'Option 1 · Routes demo content and a Movement Mission layout preview. Search and organization controls follow in step 3.',
     versions: [
       {
         id: 'v1',

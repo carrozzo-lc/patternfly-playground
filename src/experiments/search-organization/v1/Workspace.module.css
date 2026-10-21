@@ -30,7 +30,12 @@
   margin: var(--pf-t--global--spacer--sm);
 }
 
-.selectionPlaceholder {
+.selectionSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-t--global--spacer--xs);
   margin-block-end: var(--pf-t--global--spacer--md);
   color: var(--pf-t--global--text--color--subtle);
   font-size: var(--pf-t--global--font--size--body--sm);
@@ -60,8 +65,20 @@
 }
 
 .routeGroups {
-  min-block-size: 285px;
   margin-block-start: var(--pf-t--global--spacer--md);
+  max-block-size: 520px;
+  overflow: auto;
+}
+
+.selectionActions {
+  display: flex;
+  gap: var(--pf-t--global--spacer--xs);
+  font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+.expandAction {
+  margin-block-end: var(--pf-t--global--spacer--sm);
+  text-decoration: underline;
 }
 
 .mapRegion {
@@ -138,10 +155,6 @@
 
   .routesCard {
     min-block-size: 0;
-  }
-
-  .routeGroups {
-    min-block-size: 120px;
   }
 
   .mapSurface {
