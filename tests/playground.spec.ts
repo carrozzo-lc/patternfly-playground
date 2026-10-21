@@ -1,4 +1,10 @@
 import { expect, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
+
+async function expectCatalog(page: Page) {
+  await expect(page.getByRole('heading', { name: 'Experiments', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible()
+}
 
 test('loads the home with PF6 styling and no browser errors', async ({ page }) => {
   const errors: string[] = []
@@ -9,7 +15,7 @@ test('loads the home with PF6 styling and no browser errors', async ({ page }) =
   page.on('requestfailed', (request) => errors.push(request.url()))
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Experiments', exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'No experiments yet' })).toBeVisible()
+  await expectCatalog(page)
   await expect(page.getByRole('navigation').getByRole('link', { name: 'Experiments' })).toHaveAttribute('aria-current', 'page')
   await page.evaluate(() => document.fonts.ready)
   expect(await page.locator('body').evaluate((body) => getComputedStyle(body).fontFamily)).toContain('Red Hat')
@@ -28,7 +34,7 @@ test('supports navigation, direct links, reload, and browser history', async ({ 
   await page.reload()
   await expect(page.getByText('PatternFly 6.7.0', { exact: true })).toBeVisible()
   await page.goBack()
-  await expect(page.getByRole('heading', { name: 'No experiments yet' })).toBeVisible()
+  await expectCatalog(page)
   await page.goto('./#/about')
   await expect(page.getByRole('heading', { name: 'About this playground' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
@@ -41,7 +47,7 @@ test('handles unavailable experiment links without a blank screen', async ({ pag
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
   await page.getByRole('link', { name: 'Back to experiments' }).click()
-  await expect(page.getByRole('heading', { name: 'No experiments yet' })).toBeVisible()
+  await expectCatalog(page)
 })
 
 test('offers a keyboard skip link without changing the hash route', async ({ page }) => {

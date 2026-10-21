@@ -1,0 +1,165 @@
+.frame {
+  container-type: inline-size;
+}
+
+/* Reference dimensions for the desktop demo; narrower containers stack below. */
+.workspace {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  block-size: 800px;
+  border: var(--pf-t--global--border--width--regular) solid var(--pf-t--global--border--color--default);
+  background: var(--pf-t--global--background--color--secondary--default);
+}
+
+.routesRegion {
+  min-inline-size: 0;
+  border-inline-end: var(--pf-t--global--border--width--regular) solid var(--pf-t--global--border--color--default);
+}
+
+.routesPanel {
+  block-size: 100%;
+  background: var(--pf-t--global--background--color--secondary--default);
+}
+
+.routesHeader {
+  border-block-end: var(--pf-t--global--border--width--regular) solid var(--pf-t--global--border--color--default);
+}
+
+.routesCard {
+  min-block-size: 437px;
+  margin: var(--pf-t--global--spacer--sm);
+}
+
+.selectionSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-t--global--spacer--xs);
+  margin-block-end: var(--pf-t--global--spacer--md);
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+.placeholderRegion {
+  display: grid;
+  place-items: center;
+  border: var(--pf-t--global--border--width--regular) dashed var(--pf-t--global--border--color--default);
+  border-radius: var(--pf-t--global--border--radius--small);
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+.searchFeedback {
+  margin-block-start: var(--pf-t--global--spacer--sm);
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+.routeGroups {
+  margin-block-start: var(--pf-t--global--spacer--md);
+  max-block-size: 520px;
+  overflow: auto;
+}
+
+.selectionActions {
+  display: flex;
+  gap: var(--pf-t--global--spacer--xs);
+  font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+.expandAction {
+  --pf-v6-c-button--m-link--m-inline--Color: var(--pf-t--global--text--color--regular);
+  --pf-v6-c-button--m-link--m-inline__icon--Color: var(--pf-t--global--icon--color--regular);
+
+  margin-block-end: var(--pf-t--global--spacer--sm);
+  text-decoration: underline;
+}
+
+.mapRegion {
+  position: relative;
+  min-inline-size: 0;
+  isolation: isolate;
+}
+
+.mapSurface {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  background: var(--pf-t--global--background--color--secondary--default);
+}
+
+.mapFrame {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+}
+
+.mapCaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--pf-t--global--spacer--sm);
+  padding: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--sm);
+  background: var(--pf-t--global--background--color--primary--default);
+  font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+.detailCard {
+  position: absolute;
+  inset-block-start: var(--pf-t--global--spacer--md);
+  /* Leave the map navigation controls accessible beside the floating card. */
+  inset-inline-end: var(--pf-t--global--spacer--2xl);
+  inline-size: 430px;
+  block-size: 668px;
+  box-shadow: var(--pf-t--global--box-shadow--md);
+}
+
+.detailHeader {
+  min-block-size: 70px;
+}
+
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-t--global--spacer--md);
+  min-block-size: 0;
+}
+
+.detailSummary {
+  flex: 0 0 248px;
+}
+
+.detailResults {
+  flex: 1;
+  min-block-size: 160px;
+}
+
+@container (max-width: 999px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    block-size: auto;
+  }
+
+  .routesRegion {
+    border-inline-end: 0;
+    border-block-end: var(--pf-t--global--border--width--regular) solid var(--pf-t--global--border--color--default);
+  }
+
+  .routesCard {
+    min-block-size: 0;
+  }
+
+  .mapSurface {
+    position: relative;
+    block-size: 320px;
+  }
+
+  .detailCard {
+    position: static;
+    inline-size: min(430px, calc(100% - 2 * var(--pf-t--global--spacer--md)));
+    margin: var(--pf-t--global--spacer--md) auto;
+  }
+}

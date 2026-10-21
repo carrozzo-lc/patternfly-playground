@@ -1,0 +1,198 @@
+import { expect, test } from '@playwright/test'
+
+// Keep layout checks independent of the external map provider.
+test.beforeEach(async ({ page }) => {
+  await page.route('https://www.openstreetmap.org/export/embed.html**', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<html lang="en"><body>Map preview</body></html>' }),
+  )
+})
+
+test('opens the registered layout and supports a direct reload', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('list', { name: 'Search and organization versions' }).getByRole('link', { name: 'Open v1' }).click()
+  await expect(page).toHaveURL(/#\/experiments\/search-organization\/v1$/)
+  await expect(page.getByRole('heading', { name: 'Search and organization', exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Map workspace' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('complementary', { name: 'Routes', exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Movement mission details', exact: true })).toBeVisible()
+  await expect(page.getByRole('searchbox', { name: 'Search routes', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Group by: Nation', exact: true })).toBeVisible()
+  await expect(page.getByRole('searchbox', { name: 'Search mission legs', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sort by: Departure ascending', exact: true })).toBeVisible()
+  await expect(page.getByTitle('OpenStreetMap — central Europe')).toHaveAttribute('src', /^https:\/\/www\.openstreetmap\.org\/export\/embed\.html\?/)
+  await expect(page.getByRole('link', { name: /© OpenStreetMap contributors/ })).toBeVisible()
+})
+
+test('keeps the panels separate and stacks within narrow containers', async ({ page }) => {
+  await page.goto('./#/experiments/search-organization/v1')
+  const routes = page.getByRole('complementary', { name: 'Routes', exact: true })
+  const details = page.getByRole('region', { name: 'Movement mission details', exact: true })
+  const map = page.getByRole('region', { name: 'Map background', exact: true })
+  await expect(routes).toBeVisible()
+  await expect(details).toBeVisible()
+  const workspaceBox = await page.getByRole('region', { name: 'Map workspace' }).boundingBox()
+  const routesBox = await routes.boundingBox()
+  const detailsBox = await details.boundingBox()
+  const mapBox = await map.boundingBox()
+  if (!workspaceBox || !routesBox || !detailsBox || !mapBox) throw new Error('Missing layout region')
+  if (workspaceBox.width > 1000) {
+    expect(routesBox.width).toBe(340)
+    expect(detailsBox.width).toBe(430)
+    expect(await details.locator(':scope > .pf-v6-c-card__body').evaluate((body) => body.scrollHeight <= body.clientHeight + 1)).toBe(true)
+    expect(detailsBox.x).toBeGreaterThanOrEqual(routesBox.x + routesBox.width)
+  } else {
+    expect(mapBox.y).toBeGreaterThanOrEqual(routesBox.y + routesBox.height)
+    expect(detailsBox.y).toBeGreaterThanOrEqual(mapBox.y + mapBox.height)
+    expect(detailsBox.x).toBeGreaterThanOrEqual(workspaceBox.x)
+    expect(detailsBox.x + detailsBox.width).toBeLessThanOrEqual(workspaceBox.x + workspaceBox.width)
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await page.getByRole('main').evaluate((main) => main.scrollWidth <= main.clientWidth)).toBe(true)
+})
+
+
+test('selects routes through parent checkboxes and bulk actions without changing the mission', async ({ page }) => {
+  await page.goto('./#/experiments/search-organization/v1')
+  const panel = page.getByRole('complementary', { name: 'Routes', exact: true })
+  const summary = panel.getByRole('status', { name: 'Route selection', exact: true })
+  await expect(summary).toHaveText('3 / 8 SELECTED')
+  await panel.getByRole('button', { name: 'Deselect All', exact: true }).click()
+  await expect(summary).toHaveText('0 / 8 SELECTED')
+  await panel.getByRole('button', { name: 'Expand all', exact: true }).click()
+  const firstRoute = panel.getByRole('checkbox', { name: 'Alpha — Bravo', exact: true })
+  await expect(firstRoute).toBeVisible()
+  await firstRoute.focus()
+  await page.keyboard.press('Space')
+  await expect(summary).toHaveText('1 / 8 SELECTED')
+  const roadNetwork = panel.getByRole('checkbox', { name: 'Network Demo Road', exact: true })
+  await expect(roadNetwork).toBeChecked({ indeterminate: true })
+  await roadNetwork.check()
+  await expect(summary).toHaveText('4 / 8 SELECTED')
+  await expect(panel.getByRole('checkbox', { name: 'Foxtrot — Golf', exact: true })).toBeChecked()
+  await panel.getByRole('button', { name: 'Collapse all', exact: true }).click()
+  await expect(firstRoute).not.toBeVisible()
+  await panel.getByRole('button', { name: 'Select All', exact: true }).click()
+  await expect(summary).toHaveText('8 / 8 SELECTED')
+  await expect(page.getByRole('heading', { name: 'Movement mission details', exact: true })).toBeVisible()
+  await expect(page.getByText('Mission legs', { exact: true })).toBeVisible()
+})
+
+
+test('changes grouping with the keyboard and keeps the active value and route selection', async ({ page }) => {
+  await page.goto('./#/experiments/search-organization/v1')
+  const search = page.getByRole('searchbox', { name: 'Search routes', exact: true })
+  await search.focus()
+  await page.keyboard.press('Tab')
+  const nationToggle = page.getByRole('button', { name: 'Group by: Nation', exact: true })
+  await expect(nationToggle).toBeFocused()
+  await page.keyboard.press('Enter')
+  const menu = page.getByRole('listbox', { name: 'Group by', exact: true })
+  await expect(menu.getByRole('option', { name: 'Nation', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(menu.getByRole('option', { name: 'Nation', exact: true })).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('Enter')
+  const typeToggle = page.getByRole('button', { name: 'Group by: Type', exact: true })
+  await expect(typeToggle).toHaveText('Group by: Type')
+  await expect(typeToggle).toBeFocused()
+  await expect(typeToggle).toHaveAttribute('aria-expanded', 'false')
+  await expect(menu).not.toBeVisible()
+  const tree = page.getByRole('tree', { name: 'Routes by network and type', exact: true })
+  await expect(tree.getByRole('checkbox', { name: 'TCR', exact: true })).toBeVisible()
+  await expect(tree.getByRole('checkbox', { name: 'RCR', exact: true })).toBeVisible()
+  await expect(tree.getByRole('checkbox', { name: 'Neither', exact: true })).toBeVisible()
+  await expect(page.getByRole('status', { name: 'Route selection', exact: true })).toHaveText('3 / 8 SELECTED')
+  await typeToggle.click()
+  await expect(menu.getByRole('option', { name: 'Type', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await page.keyboard.press('Escape')
+  await expect(typeToggle).toBeFocused()
+  await expect(menu).not.toBeVisible()
+})
+
+test('filters routes, preserves selection through regrouping and recovers from no results', async ({ page }) => {
+  await page.goto('./#/experiments/search-organization/v1')
+  const search = page.getByRole('searchbox', { name: 'Search routes', exact: true })
+  await search.fill('  ALPHA  ')
+  await expect(page.getByRole('status', { name: 'Route search results', exact: true })).toHaveText('3 of 8 routes')
+  const firstRoute = page.getByRole('checkbox', { name: 'Alpha — Bravo', exact: true })
+  await expect(firstRoute).toBeVisible()
+  await firstRoute.uncheck()
+  await expect(page.getByRole('status', { name: 'Route selection', exact: true })).toHaveText('2 / 8 SELECTED')
+  await page.getByRole('button', { name: 'Group by: Nation', exact: true }).click()
+  await page.getByRole('option', { name: 'Type', exact: true }).click()
+  await expect(search).toHaveValue('  ALPHA  ')
+  await expect(firstRoute).not.toBeChecked()
+  await search.fill('no-matching-route')
+  await expect(page.getByRole('status', { name: 'Route search results', exact: true })).toHaveText('No routes found.')
+  await expect(page.getByRole('button', { name: /^(Expand all|Collapse all)$/ })).toBeDisabled()
+  await search.fill('')
+  await expect(page.getByRole('status', { name: 'Route search results', exact: true })).not.toBeVisible()
+  await page.getByRole('button', { name: /^(Expand all|Collapse all)$/ }).click()
+  await expect(firstRoute).toBeVisible()
+  await expect(firstRoute).not.toBeChecked()
+  await expect(page.getByRole('status', { name: 'Route selection', exact: true })).toHaveText('2 / 8 SELECTED')
+})
+
+test('selects all four sort choices, keeps the closed value and isolates the two contexts', async ({ page }) => {
+  await page.goto('./#/experiments/search-organization/v1')
+  const mission = page.getByRole('region', { name: 'Movement mission details', exact: true })
+  const search = mission.getByRole('searchbox', { name: 'Search mission legs', exact: true })
+  await search.fill('demo origin')
+  const choices = [
+    ['Departure descending', 'Departure ↓'],
+    ['Arrival ascending', 'Arrival ↑'],
+    ['Arrival descending', 'Arrival ↓'],
+    ['Departure ascending', 'Departure ↑'],
+  ]
+  for (const [accessibleName, visibleLabel] of choices) {
+    await mission.getByRole('button', { name: /^Sort by:/ }).click()
+    const menu = page.getByRole('listbox', { name: 'Sort by', exact: true })
+    await expect(menu.getByRole('option')).toHaveCount(4)
+    await menu.getByRole('option', { name: accessibleName, exact: true }).click()
+    const toggle = mission.getByRole('button', { name: `Sort by: ${accessibleName}`, exact: true })
+    await expect(toggle).toHaveText(`Sort by: ${visibleLabel}`)
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(toggle).toBeFocused()
+    await expect(menu).not.toBeVisible()
+    await toggle.click()
+    await expect(menu.getByRole('option', { name: accessibleName, exact: true })).toHaveAttribute('aria-selected', 'true')
+    await page.keyboard.press('Escape')
+  }
+  await expect(search).toHaveValue('demo origin')
+  await expect(page.getByRole('searchbox', { name: 'Search routes', exact: true })).toHaveValue('')
+  await expect(page.getByRole('button', { name: 'Group by: Nation', exact: true })).toBeVisible()
+  await expect(mission.getByText('Mission summary', { exact: true })).toBeVisible()
+  await expect(mission.getByText('Mission legs', { exact: true })).toBeVisible()
+})
+
+test('keeps joined controls aligned, focus visible, and the open menu inside the viewport', async ({ page }) => {
+  await page.goto('./#/experiments/search-organization/v1')
+  for (const [searchName, toggleName, menuName] of [
+    ['Search routes', 'Group by: Nation', 'Group by'],
+    ['Search mission legs', 'Sort by: Departure ascending', 'Sort by'],
+  ]) {
+    const search = page.getByRole('searchbox', { name: searchName, exact: true })
+    const toggle = page.getByRole('button', { name: toggleName, exact: true })
+    const inputBox = await search.boundingBox()
+    const toggleBox = await toggle.boundingBox()
+    if (!inputBox || !toggleBox) throw new Error('Missing control')
+    expect(inputBox.height).toBe(37)
+    expect(toggleBox.height).toBe(37)
+    expect(inputBox.y).toBe(toggleBox.y)
+    expect(Math.abs(inputBox.x + inputBox.width - toggleBox.x - 1)).toBeLessThan(1)
+    await search.focus()
+    expect(await search.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none')
+    await page.keyboard.press('Tab')
+    await expect(toggle).toBeFocused()
+    expect(await toggle.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none')
+    await toggle.click()
+    const menu = page.getByRole('listbox', { name: menuName, exact: true })
+    const menuBox = await menu.boundingBox()
+    if (!menuBox) throw new Error('Missing menu')
+    expect(menuBox.x).toBeGreaterThanOrEqual(0)
+    expect(menuBox.x + menuBox.width).toBeLessThanOrEqual(page.viewportSize()!.width)
+    await search.click()
+    await expect(menu).not.toBeVisible()
+    await expect(search).toBeFocused()
+  }
+})
